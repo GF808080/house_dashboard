@@ -1,0 +1,6 @@
+*.pyc
+/__pycache__
+*.db
+config.py
+*.csv
+/needed_qmark
