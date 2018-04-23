@@ -11,9 +11,6 @@ from datetime import datetime
 from config import BaseConfig
 
 dbloc = BaseConfig.SQLALCHEMY_DATABASE_URI 
-print(dbloc)
-import time
-time.sleep(10)
 engine = create_engine(dbloc,  echo=True)
 connection = engine.connect()
 Base = declarative_base()
