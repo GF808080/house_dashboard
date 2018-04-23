@@ -7,10 +7,9 @@ Created on Sat Dec 30 21:59:16 2017
 """
 
 from os.path import dirname, join
-
+import sys
 import numpy as np
 import pandas as pd
-
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -21,14 +20,16 @@ from bokeh.models import ColumnDataSource, HoverTool, Div
 from bokeh.models.widgets import Slider, Select
 from bokeh.io import curdoc
 from bokeh.palettes import Category20
+sys.path.append("..")
+import models, config
 
-from models import Housedetails, Driveestimates
-from config import BaseConfig
 
 ###############################################################################
 ### I ken haz data?
 ###############################################################################
-
+Housedetails= models.Housedetails
+Driveestimates = models.Driveestimates
+BaseConfig = config.BaseConfig
 dbloc = BaseConfig.SQLALCHEMY_DATABASE_URI
 engine = create_engine(dbloc,  echo=True)
 connection = engine.connect()
@@ -156,6 +157,7 @@ data['cleanbaths']= data.BATHS.apply(lambda x: float(x))
 data['cleanpark']= data.PARKING_SPOTS.apply(lambda x: to_int(x))
 data['price_sqft']=data.apply(priceSQFT, axis=1)
 data['zipc']= data['ZIP'].apply(lambda x: int(x))
+data['cleanSQFT']=data['SQFT'].apply(lambda x: to_int(x))
 
 ###
 #get a list of all the cities fro grins
@@ -163,13 +165,17 @@ cities = list(data.CITY.unique())
 cities.append('All')
 
 ##take care of my alpha here
-data["alpha"] = np.where(data["length_owned"] >21, 0.9, 0.25) #alpha based on ownership
+data['alpha']=1.2
+#uncomment if you want alpha to highlight only where something's been owned a long time
+#data["alpha"] = np.where(data["length_owned"] >21, 0.9, 0.25) #alpha based on ownership
+
 data.drop_duplicates(subset=['ADDRESS'],  inplace=True)
 ###############################################################################
 ## skipping some mapping stuff, let's look at this later
 ###############################################################################
 axis_map= {
         "List Price": "cleanprice",
+        "sqft":"cleanSQFT",
         "Year Built": "cleanyear",
         "Length_Owned": "length_owned",
         "Bedrooms": "cleanbeds",
@@ -196,6 +202,7 @@ baths = Slider(title="Number of Bathrooms", start=2, end=5, value=2, step=.5)
 beds = Slider(title="Number of Bedrooms", start=3, end=6, value=3, step=1)
 price = Slider(title="Listed Price", start=0, end=1100000, value=400000, step=10000)
 city = Select(title="City", value="All", options=cities)
+sqft =Slider(title="sqft", start=1000, end=7000, value=1200, step=10)
 #ptype = Select(title="Parking Type", value="All", options=data.PARKING_TYPE.unique())
 #pspace = Select(title="Parking Spaces", value="All", options=data.PARKING_SPOTS.unique())
 
@@ -234,8 +241,8 @@ hover = HoverTool(tooltips=[
 p = figure(plot_height=600, plot_width=700, title="", toolbar_location=None, tools=[hover])
 p.circle(x="x", y="y", source=source, size=7, color="color", line_color=None,\
          fill_alpha="alpha", legend='zipc')
-p.legend.location = "bottom_right"
-
+p.legend.location = "top_left"
+#p.legend.location = "top_center"
 ###############################################################################
 ## make our functions to select houses and update data
 ###############################################################################
@@ -252,7 +259,8 @@ def select_house():
         (data.cleanbeds >= beds.value) &
         (data.cleanyear >= min_year.value) &
         (data.cleanyear <= max_year.value) &
-        (data.cleanbaths >= baths.value)
+        (data.cleanbaths >= baths.value) &
+        (data.cleanSQFT >= sqft.value)
     ]
     if (city_val != "All"):
         selected = selected[selected.CITY.str.contains(city_val)==True]
@@ -272,6 +280,7 @@ def update():
         color=df["color"],
         address=df["ADDRESS"],
         cleanyear=df['cleanyear'],
+        sqft=df['cleanSQFT'],
         year=df["cleanyear"],
         price=df["cleanprice"],
         alpha=df["alpha"],
@@ -283,7 +292,7 @@ def update():
         combined_guess_am=df['combined_guess_am']
     )
 
-controls = [min_year ,max_year, baths, beds, price, city, x_axis, y_axis]
+controls = [min_year ,max_year, sqft, baths, beds, price, city, x_axis, y_axis]
 for control in controls:
     control.on_change('value', lambda attr, old, new: update())
 

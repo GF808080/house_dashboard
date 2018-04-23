@@ -11,7 +11,9 @@ from datetime import datetime
 from config import BaseConfig
 
 dbloc = BaseConfig.SQLALCHEMY_DATABASE_URI 
-
+print(dbloc)
+import time
+time.sleep(10)
 engine = create_engine(dbloc,  echo=True)
 connection = engine.connect()
 Base = declarative_base()
@@ -28,7 +30,7 @@ def morning_night(address):
         evening_commute = datetime(2018, 9,25, 17)
         commutes = [morning_commute, evening_commute]
         for commute in commutes:
-            print("Doing {address}, for {commute}".format(address = address, commute = commute))
+#            print("Doing {address}, for {commute}".format(address = address, commute = commute))
             ne=estimate_commutes(address, commute) #ne, new DriveEstimate
             toinsert = Driveestimates(address=address,\
                                       AOffice_guess=ne['AOffice_guess'],\
@@ -36,15 +38,14 @@ def morning_night(address):
                                       BOffice_guess=ne['BOffice_guess'],\
                                       BOffice_traffic=ne['BOffice_traffic'],\
                                       date_time=ne['date_time'])
-            print(toinsert)
-            try:
-                s.add(toinsert)
-                s.commit()
-            except:
-                pass
+#            print(toinsert)
+            s.add(toinsert)
+            s.commit()
+
 
 #use my table class for easy data-insertion
 HouseDetails = Table('Housedetails', meta, autoload=True, autoload_with=engine)
+
 ### Delete old favorites to put new ones in
 d = HouseDetails.delete()
 s.execute(d)
@@ -61,9 +62,9 @@ addresses = []
 for i, row in fav.iterrows():
     if row['ADDRESS'] not in addresses:
         add = row['ADDRESS']+', '+str(row['ZIP'])
-        print('doing {}'.format(add))
+#        print('doing {}'.format(add))
         morning_night(add)
-        print('done')
+#        print('done')
         try:
             ins = HouseDetails.insert().values(URL = row['URL_(SEE_http://www.redfin.com/buy-a-home/comparative-market-analysis_FOR_INFO_ON_PRICING)'],
                                                             SALE_TYPE = row['SALE_TYPE'],
@@ -87,12 +88,16 @@ for i, row in fav.iterrows():
                                                             ORIGINAL_LIST_PRICE = row['ORIGINAL_LIST_PRICE'],
                                                             LAST_SALE_DATE = row['LAST_SALE_DATE'],
                                                             LAST_SALE_PRICE = row['LAST_SALE_PRICE'],
+                                                             LISTING_ID = row['LISTING_ID'],
                                                             SOURCE = row['SOURCE'],
-                                                            LISTING_ID = row['LISTING_ID'],
-                                                            ORIGINAL_SOURCE = row['ORIGINAL_SOURCE'],
+                                                           ORIGINAL_SOURCE = row['ORIGINAL_SOURCE'],
                                                             LATITUDE = row['LATITUDE'],
                                                             LONGITUDE = row['LONGITUDE'],
                                                             IS_SHORT_SALE = row['IS_SHORT_SALE'])
+            
         except:
             print('failed on {}'.format(row['ADDRESS']))
-    connection.execute(ins)
+        try:
+            connection.execute(ins)
+        except:
+            print("Bad execute on inserting {}".format(row['ADDRESS']))

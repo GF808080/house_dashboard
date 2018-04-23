@@ -56,13 +56,12 @@ class offices(Base):
         
 class Driveestimates(Base):
     __tablename__ = "Driveestimates"
-    id = Column(Integer)
-    address = Column(String, primary_key=True, unique=True)
+    address = Column(String, primary_key=True)
     AOffice_guess = Column(Integer)
     AOffice_traffic = Column(Integer)
     BOffice_guess = Column(Integer)
     BOffice_traffic = Column(Integer)
-    date_time = Column(String)
+    date_time = Column(String, primary_key=True)
     
     def __init__(self, name):
 

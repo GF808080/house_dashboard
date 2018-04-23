@@ -18,8 +18,7 @@ class Houses(Base):
 
 class Housedetails(Base):
     __tablename__ = "Housedetails"
-    id = Column(Integer)
-    URL = Column(String, primary_key=True)
+    URL = Column(String, primary_key=True, unique=True)
     SALE_TYPE = Column(String)
     HOME_TYPE = Column(String)
     ADDRESS = Column(String)
@@ -46,7 +45,7 @@ class Housedetails(Base):
     ORIGINAL_SOURCE = Column(String)
     LATITUDE = Column(String)
     LONGITUDE = Column(String)
-    IS_SHORT_SALE = Column(Boolean)
+    IS_SHORT_SALE = Column(Integer)
 
 
 class Drivetimes(Base):
@@ -59,14 +58,12 @@ class Drivetimes(Base):
     
 class Offices(Base):
     __tablename__ = "offices"
-
     id = Column(Integer, primary_key=True)
     address = Column(String)
     person = Column(String)
        
 class Driveestimates(Base):
     __tablename__ = "Driveestimates"
-    id = Column(Integer)
     address = Column(String, primary_key=True)
     AOffice_guess = Column(Integer)
     AOffice_traffic = Column(Integer)
@@ -76,7 +73,6 @@ class Driveestimates(Base):
     
 class Laltongs(Base):
     __tablename__ = "latlongs"
-    
     address = Column(String, primary_key=True)
     latitude = Column(String)
     longitude = Column(String)
