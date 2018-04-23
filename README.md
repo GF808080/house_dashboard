@@ -19,7 +19,7 @@ the associated line in 'update_favorites.py'
 
 5) Navigate to the directory above this project and run
 ```
-bokeh serve just_dashboard --show
+bokeh serve dashboard --show
 ```
 ### Third Party Data Dependencies
 * Redfin Favorites export
