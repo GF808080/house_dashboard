@@ -15,9 +15,13 @@ and alter 'GDM_KEY' on your 'config.py'
 3) Download your redfin favorites into the 'redfin_exports' folder and change 
 the associated line in 'update_favorites.py'
 
-4) Run 'update_favorites.py' to  update your  database
-
-5) Navigate to the directory above this project and run
+4) Run necessary files to build and populate databases with your Redfin information.
+```
+source activate dashboard
+bash initial_db_create.py
+bash update_favorites.py
+```
+5) Serve the dashboard (it should open in your default browser)
 ```
 bokeh serve dashboard --show
 ```
